@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import pprint
 from tinydb import TinyDB, Query
 import testing
+import userpass
 
 
 class Result:
@@ -17,14 +18,16 @@ class Result:
     def __repr__(self):
         return str(self)
 
+
 def main():
     db = TinyDB("db.json")
 
     browser = mechanicalsoup.StatefulBrowser()
     browser.open("https://apps.ecs.vuw.ac.nz/cgi-bin/studentmarks")
     browser.select_form("form[action=\"/login-ticket\"]")
-    browser["username"] = "youngisaa"
-    browser["password"] = input("Enter password:")
+
+    browser["username"] = userpass.get_username()
+    browser["password"] = userpass.get_password()
     browser.submit_selected()
 
     results = []
@@ -64,6 +67,7 @@ def main():
         print("No new results")
 
     # pprint.pprint(subject_map)
+
 
 if __name__ == "__main__":
     main()
