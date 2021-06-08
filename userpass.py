@@ -3,6 +3,7 @@ from os.path import isfile
 from cryptography.fernet import Fernet
 
 SECRET_FILE = "userpass_secret.key"
+EMAIL_FILE = "userpass_email_addr.txt"
 USERNAME_FILE = "userpass_username.txt"
 PASSWORD_FILE = "userpass_password.txt"
 
@@ -59,6 +60,10 @@ def save_username(username):
     save_data(USERNAME_FILE, username)
 
 
+def save_email_addr(email_addr):
+    save_data(EMAIL_FILE, email_addr)
+
+
 def get_password() -> str:
     init()
     return get_data(PASSWORD_FILE)
@@ -69,13 +74,20 @@ def get_username() -> str:
     return get_data(USERNAME_FILE)
 
 
+def get_email_addr() -> str:
+    init()
+    return get_data(EMAIL_FILE)
+
+
 def init():
     if not isfile(SECRET_FILE):
         generate_key()
 
-    if not isfile(USERNAME_FILE) or not isfile(PASSWORD_FILE):
+    if not isfile(USERNAME_FILE) or not isfile(PASSWORD_FILE) or not isfile(EMAIL_FILE):
         print("This is the first time running GetGrade. Please enter:")
+        email_addr = input("Email address to send to:")
         username = input("Username:")
         password = input("Password:")
+        save_email_addr(email_addr)
         save_username(username)
         save_password(password)

@@ -1,8 +1,8 @@
 import mechanicalsoup
 from bs4 import BeautifulSoup
-import pprint
 from tinydb import TinyDB, Query
-import testing
+
+import gmail
 import userpass
 
 
@@ -11,6 +11,14 @@ class Result:
         self.subject = subject
         self.assig = assig
         self.mark = mark
+
+    def email_format_space(self, minlen) -> str:
+        diff = minlen - len(self.email_format())
+        spaces = " " * diff
+        return str(self.assig) + ": " + spaces + str(self.mark) + "\n"
+
+    def email_format(self) -> str:
+        return str(self.assig) + ": " + str(self.mark) + "\n"
 
     def __str__(self):
         return str(self.subject) + ": " + str(self.assig) + ": " + str(self.mark) + "\n"
@@ -21,6 +29,8 @@ class Result:
 
 def main():
     db = TinyDB("db.json")
+    # Drop tables
+    db.drop_tables()
 
     browser = mechanicalsoup.StatefulBrowser()
     browser.open("https://apps.ecs.vuw.ac.nz/cgi-bin/studentmarks")
@@ -31,7 +41,7 @@ def main():
     browser.submit_selected()
 
     results = []
-    newResults = []
+    new_results = {}
 
     page = str(browser.page)
     # page = testing.defaultPage
@@ -54,15 +64,37 @@ def main():
         results.append(x)
 
     for result in results:
-        Entry = Query()
+        entry_query = Query()
         db_result = db.search(
-            (Entry.subject == result.subject) & (Entry.assig == result.assig) & (Entry.mark == result.mark))
+            (entry_query.subject == result.subject) & (entry_query.assig == result.assig) & (
+                        entry_query.mark == result.mark))
         if (len(db_result)) == 0:
             db.insert({"subject": result.subject, "assig": result.assig, "mark": result.mark})
-            newResults.append(result)
+            if result.subject not in new_results:
+                new_results[result.subject] = []
+            new_results.get(result.subject).append(result)
 
-    if len(newResults) > 0:
-        print(newResults)
+    if len(new_results) > 0:
+        print(new_results)
+        str_list = []
+        for subject in new_results.keys():
+            str_list.append(subject + "\n\n")
+            maxlen = 0
+            # Find the max size to align mark with
+            for result in new_results.get(subject):
+                currlen = len(result.email_format())
+                if (currlen > maxlen):
+                    maxlen = currlen
+
+            # Append to string list
+            for result in new_results.get(subject):
+                # str_list.append(" - " + result.assig + ": " + str(result.mark) + "\n")
+                str_list.append(result.email_format_space(maxlen))
+
+            str_list.append("\n")
+
+        subject = "New ECS Results" if len(str_list) > 1 else "New ECS Result"
+        gmail.send_email(subject, "".join(str_list))
     else:
         print("No new results")
 
