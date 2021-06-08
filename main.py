@@ -1,6 +1,10 @@
+from random import seed
+from random import random
 import mechanicalsoup
 from bs4 import BeautifulSoup
 from tinydb import TinyDB, Query
+import time
+import datetime
 
 import gmail
 import userpass
@@ -30,7 +34,7 @@ class Result:
 def main():
     db = TinyDB("db.json")
     # Drop tables
-    db.drop_tables()
+    # db.drop_tables()
 
     browser = mechanicalsoup.StatefulBrowser()
     browser.open("https://apps.ecs.vuw.ac.nz/cgi-bin/studentmarks")
@@ -74,6 +78,7 @@ def main():
                 new_results[result.subject] = []
             new_results.get(result.subject).append(result)
 
+    time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if len(new_results) > 0:
         print(new_results)
         str_list = []
@@ -95,11 +100,18 @@ def main():
 
         subject = "New ECS Results" if len(str_list) > 1 else "New ECS Result"
         gmail.send_email(subject, "".join(str_list))
+        print("Email sent at: " + time_str)
     else:
-        print("No new results")
+        print("No new results at: " + time_str)
 
     # pprint.pprint(subject_map)
 
 
 if __name__ == "__main__":
-    main()
+    seed(1)
+    while (True):
+        main()
+        sleep_minutes = 15+(random()*(30-15))
+        print("Sleeping for: " + str(sleep_minutes) + " minutes")
+        time.sleep(sleep_minutes*60)
+
