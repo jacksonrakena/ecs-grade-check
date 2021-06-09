@@ -6,6 +6,7 @@ from tinydb import TinyDB, Query
 import time
 import datetime
 import gmail
+import log
 import userpass
 
 
@@ -18,10 +19,10 @@ class Result:
     def email_format_space(self, minlen) -> str:
         diff = minlen - len(self.email_format())
         spaces = " " * diff
-        return str(self.assig) + ": " + spaces + str(self.mark) + "\n"
+        return str(self.assig) + ": " + spaces + str(self.mark)
 
     def email_format(self) -> str:
-        return str(self.assig) + ": " + str(self.mark) + "\n"
+        return str(self.assig) + ": " + str(self.mark)
 
     def __str__(self):
         return str(self.subject) + ": " + str(self.assig) + ": " + str(self.mark) + "\n"
@@ -30,37 +31,42 @@ class Result:
         return str(self)
 
 
+def format_results(results) -> str:
+    str_list = []
+    first = True
+    for subject in results.keys():
+        if first:
+            first = False
+        else:
+            str_list.append("\n")
+        str_list.append("=" * len(subject) + "\n")
+        str_list.append(subject + "\n")
+        str_list.append("=" * len(subject) + "\n")
+        maxlen = 0
+        # Find the max size to align mark with
+        for result in results.get(subject):
+            currlen = len(result.email_format())
+            if currlen > maxlen:
+                maxlen = currlen
+
+        # Append to string list
+        for result in results.get(subject):
+            # str_list.append(" - " + result.assig + ": " + str(result.mark) + "\n")
+            str_list.append(result.email_format_space(maxlen) + "\n")
+
+    return "".join(str_list)
+
+
 def email(new_results):
     """
     Emails the new results
     :param new_results: the new results
     """
-    str_list = []
-    for subject in new_results.keys():
-        str_list.append(subject + "\n\n")
-        maxlen = 0
-        # Find the max size to align mark with
-        for result in new_results.get(subject):
-            currlen = len(result.email_format())
-            if (currlen > maxlen):
-                maxlen = currlen
-
-        # Append to string list
-        for result in new_results.get(subject):
-            # str_list.append(" - " + result.assig + ": " + str(result.mark) + "\n")
-            str_list.append(result.email_format_space(maxlen))
-
-        str_list.append("\n")
-
-    subject = "New ECS Results" if len(str_list) > 1 else "New ECS Result"
-    gmail.send_email(subject, "".join(str_list))
+    subject = "New ECS Results" if len(new_results) > 1 else "New ECS Result"
+    gmail.send_email(subject, format_results(new_results))
 
 
 def main():
-    db = TinyDB("db.json")
-    # Drop tables
-    # db.drop_tables()
-
     browser = mechanicalsoup.StatefulBrowser()
     browser.open("https://apps.ecs.vuw.ac.nz/cgi-bin/studentmarks")
     browser.select_form("form[action=\"/login-ticket\"]")
@@ -110,22 +116,38 @@ def main():
     if epoch > 0:
         if len(new_results) > 0:
             email(new_results)
-            print("Email sent at: " + time_str)
+            log.print_log("Email sent at: " + time_str)
+            log.log("=================NEW RESULTS=================")
+            log.log(format_results(new_results))
+            log.log("=============================================")
         else:
-            print("No new results at: " + time_str)
+            log.print_log("No new results at: " + time_str)
     else:
-        print("Initialized " + str(len(results)) + " results at: " + time_str)
+        log.print_log("Initialized " + str(len(results)) + " results at: " + time_str)
+        log.print_log("===============INITIAL RESULTS===============")
+        log.print_log(format_results(new_results))
+        log.print_log("=============================================")
 
     # pprint.pprint(subject_map)
 
 
 if __name__ == "__main__":
-    seed(1)
+    db = TinyDB("db.json")
+    # Drop tables
+    db.drop_tables()
+
+    # Clear the log
+    log.clear()
+
+    # Initialize gmail
+    gmail.init()
+
+    seed()
     epoch = 0
     while True:
         main()
         epoch += 1
         # Sleep
         sleep_minutes = 15 + (random() * (30 - 15))
-        print("Sleeping for: " + str(sleep_minutes) + " minutes")
+        log.print_log("Sleeping for: " + str(sleep_minutes) + " minutes")
         time.sleep(sleep_minutes * 60)

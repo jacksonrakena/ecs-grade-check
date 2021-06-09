@@ -1,8 +1,17 @@
 import base64
+from os.path import isfile
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import service_builder
 import userpass
+
+CREDENTIALS_FILE = "credentials.json"
+
+
+def init():
+    if not isfile(CREDENTIALS_FILE):
+        print("WARNING: A 'credentials.json' file was not found. This means that GetGrade will not be able to send "
+              "emails. Please download your credentials file from google for gmail.")
 
 
 def send_email(subject, email_msg):
@@ -19,4 +28,3 @@ def send_email(subject, email_msg):
     print("SUBJECT: " + subject)
     print(email_msg)
     print(message)
-
