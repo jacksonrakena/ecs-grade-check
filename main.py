@@ -5,7 +5,6 @@ from bs4 import BeautifulSoup
 from tinydb import TinyDB, Query
 import time
 import datetime
-
 import gmail
 import userpass
 
@@ -31,6 +30,32 @@ class Result:
         return str(self)
 
 
+def email(new_results):
+    """
+    Emails the new results
+    :param new_results: the new results
+    """
+    str_list = []
+    for subject in new_results.keys():
+        str_list.append(subject + "\n\n")
+        maxlen = 0
+        # Find the max size to align mark with
+        for result in new_results.get(subject):
+            currlen = len(result.email_format())
+            if (currlen > maxlen):
+                maxlen = currlen
+
+        # Append to string list
+        for result in new_results.get(subject):
+            # str_list.append(" - " + result.assig + ": " + str(result.mark) + "\n")
+            str_list.append(result.email_format_space(maxlen))
+
+        str_list.append("\n")
+
+    subject = "New ECS Results" if len(str_list) > 1 else "New ECS Result"
+    gmail.send_email(subject, "".join(str_list))
+
+
 def main():
     db = TinyDB("db.json")
     # Drop tables
@@ -44,7 +69,9 @@ def main():
     browser["password"] = userpass.get_password()
     browser.submit_selected()
 
+    # Full list of results
     results = []
+    # Map of new results <str course, Result result>
     new_results = {}
 
     page = str(browser.page)
@@ -67,11 +94,12 @@ def main():
         x = Result(subject_str, assig_str, mark_float)
         results.append(x)
 
+    # Check for each result, whether the database already contains it
     for result in results:
         entry_query = Query()
         db_result = db.search(
             (entry_query.subject == result.subject) & (entry_query.assig == result.assig) & (
-                        entry_query.mark == result.mark))
+                    entry_query.mark == result.mark))
         if (len(db_result)) == 0:
             db.insert({"subject": result.subject, "assig": result.assig, "mark": result.mark})
             if result.subject not in new_results:
@@ -79,39 +107,25 @@ def main():
             new_results.get(result.subject).append(result)
 
     time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if len(new_results) > 0:
-        print(new_results)
-        str_list = []
-        for subject in new_results.keys():
-            str_list.append(subject + "\n\n")
-            maxlen = 0
-            # Find the max size to align mark with
-            for result in new_results.get(subject):
-                currlen = len(result.email_format())
-                if (currlen > maxlen):
-                    maxlen = currlen
-
-            # Append to string list
-            for result in new_results.get(subject):
-                # str_list.append(" - " + result.assig + ": " + str(result.mark) + "\n")
-                str_list.append(result.email_format_space(maxlen))
-
-            str_list.append("\n")
-
-        subject = "New ECS Results" if len(str_list) > 1 else "New ECS Result"
-        gmail.send_email(subject, "".join(str_list))
-        print("Email sent at: " + time_str)
+    if epoch > 0:
+        if len(new_results) > 0:
+            email(new_results)
+            print("Email sent at: " + time_str)
+        else:
+            print("No new results at: " + time_str)
     else:
-        print("No new results at: " + time_str)
+        print("Initialized " + str(len(results)) + " results at: " + time_str)
 
     # pprint.pprint(subject_map)
 
 
 if __name__ == "__main__":
     seed(1)
-    while (True):
+    epoch = 0
+    while True:
         main()
-        sleep_minutes = 15+(random()*(30-15))
+        epoch += 1
+        # Sleep
+        sleep_minutes = 15 + (random() * (30 - 15))
         print("Sleeping for: " + str(sleep_minutes) + " minutes")
-        time.sleep(sleep_minutes*60)
-
+        time.sleep(sleep_minutes * 60)

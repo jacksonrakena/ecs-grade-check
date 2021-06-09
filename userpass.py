@@ -1,5 +1,4 @@
 from os.path import isfile
-
 from cryptography.fernet import Fernet
 
 SECRET_FILE = "userpass_secret.key"
@@ -8,7 +7,7 @@ USERNAME_FILE = "userpass_username.txt"
 PASSWORD_FILE = "userpass_password.txt"
 
 
-def generate_key():
+def _generate_key():
     """
     Generates a key and saves it into a file
     """
@@ -18,18 +17,18 @@ def generate_key():
         key_file.write(key)
 
 
-def load_key():
+def _load_key():
     """
     Loads the key named secret.key from the current directory
     :return: the key
     """
     if not isfile(SECRET_FILE):
-        generate_key()
+        _generate_key()
 
     return open(SECRET_FILE, "rb").read()
 
 
-def save_data(file, data):
+def _save_data(file, data):
     """
     Save data to file, encrypting
     :param file: file to save to
@@ -37,11 +36,11 @@ def save_data(file, data):
     :return:
     """
     f = open(file, "wb")
-    f.write(Fernet(load_key()).encrypt(data.encode()))
+    f.write(Fernet(_load_key()).encrypt(data.encode()))
     f.close()
 
 
-def get_data(file):
+def _get_data(file):
     """
     gets the data
     :param file: file to get from
@@ -49,45 +48,60 @@ def get_data(file):
     """
     f = open(file, "rb")
     encrypted = f.read()
-    return Fernet(load_key()).decrypt(encrypted).decode()
+    return Fernet(_load_key()).decrypt(encrypted).decode()
 
 
-def save_password(password):
-    save_data(PASSWORD_FILE, password)
+def _save_password(password):
+    _save_data(PASSWORD_FILE, password)
 
 
-def save_username(username):
-    save_data(USERNAME_FILE, username)
+def _save_username(username):
+    _save_data(USERNAME_FILE, username)
 
 
-def save_email_addr(email_addr):
-    save_data(EMAIL_FILE, email_addr)
+def _save_email_address(email_address):
+    _save_data(EMAIL_FILE, email_address)
 
 
 def get_password() -> str:
-    init()
-    return get_data(PASSWORD_FILE)
+    """
+    returns the users password, calling init() first
+    :return: the password stored in the email file
+    """
+    _init()
+    return _get_data(PASSWORD_FILE)
 
 
 def get_username() -> str:
-    init()
-    return get_data(USERNAME_FILE)
+    """
+    returns the users username, calling init() first
+    :return: the username stored in the email file
+    """
+    _init()
+    return _get_data(USERNAME_FILE)
 
 
-def get_email_addr() -> str:
-    init()
-    return get_data(EMAIL_FILE)
+def get_email_address() -> str:
+    """
+    returns the users email address, calling init() first
+    :return: the email address stored in the email file
+    """
+    _init()
+    return _get_data(EMAIL_FILE)
 
 
-def init():
+def _init():
+    """
+    Initialises the userpass. Queries the user if any of the files dont exist
+    """
     if not isfile(SECRET_FILE):
-        generate_key()
+        _generate_key()
 
     if not isfile(USERNAME_FILE) or not isfile(PASSWORD_FILE) or not isfile(EMAIL_FILE):
         print("This is the first time running GetGrade. Please enter:")
         email_addr = input("Email address to send to:")
         username = input("Username:")
         password = input("Password:")
-        save_email_addr(email_addr)
-        save_username(username)
-        save_password(password)
+        _save_email_address(email_addr)
+        _save_username(username)
+        _save_password(password)
