@@ -35,7 +35,7 @@ def _load_key():
     return open(SECRET_FILE, "rb").read()
 
 
-def _get_encrypted_data(name) -> str:
+def _get_encrypted_data(name: str) -> str:
     """
     gets the encrypted data
     :param name: the settings name to get from

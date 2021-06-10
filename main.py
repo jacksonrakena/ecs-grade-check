@@ -11,12 +11,12 @@ import config
 
 
 class Result:
-    def __init__(self, subject, assig, mark):
+    def __init__(self, subject: str , assig: str, mark: float):
         self.subject = subject
         self.assig = assig
         self.mark = mark
 
-    def email_format_space(self, minlen) -> str:
+    def email_format_space(self, minlen: int) -> str:
         """
         Format with spaces, padding between : and mark to reach minlen
         :param minlen: the minimum length

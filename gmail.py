@@ -18,7 +18,7 @@ def init():
               "emails. Please download your credentials file from google for gmail.")
 
 
-def send_email(subject, email_msg):
+def send_email(subject: str, email_msg: str):
     """
     Send an email
     :param subject: the subject
