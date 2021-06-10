@@ -40,7 +40,7 @@ class Result:
         return str(self)
 
 
-def format_results(results: dict[str, str]) -> str:
+def format_results(results: dict[str, list[str]]) -> str:
     """
     Format a list of results
     :param results:
@@ -71,7 +71,7 @@ def format_results(results: dict[str, str]) -> str:
     return "".join(str_list)
 
 
-def email(new_results: dict[str, str]):
+def email(new_results: dict[str, list[str]]):
     """
     Emails the new results
     :param new_results: the new results
@@ -185,7 +185,7 @@ def main():
     gmail.init()
 
     seed()
-    epoch = 0
+    epoch = 1
     while True:
         if config.within_active_hours():
             try:
@@ -194,7 +194,7 @@ def main():
                 log.print_log("ConnectionError Handled")
                 wait_on_exception()
             except:
-                log.print_log("Other Exception Handled")
+                log.print_log("Other Error Handled")
                 wait_on_exception()
             else:
                 epoch += 1

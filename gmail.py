@@ -5,7 +5,7 @@ from email.mime.text import MIMEText
 import service_builder
 import config
 
-CREDENTIALS_FILE = "credentials.json"
+CLIENT_SECRET_FILE = "client_secret.json"
 
 
 def init():
@@ -13,8 +13,8 @@ def init():
     Check for the credentials file
     :return:
     """
-    if not isfile(CREDENTIALS_FILE):
-        print("WARNING: A 'credentials.json' file was not found. This means that GetGrade will not be able to send "
+    if not isfile(CLIENT_SECRET_FILE):
+        print("WARNING: A 'client_secret.json' file was not found. This means that GetGrade will not be able to send "
               "emails. Please download your credentials file from google for gmail.")
 
 

@@ -114,7 +114,7 @@ def seconds_till_active_hours_begin() -> int:
     """
     :return: the seconds until the active hours, or 0 if it is currently active hours
     """
-    _init()
+    # _init() call in within_active_hours
     if within_active_hours():
         return 0
 
