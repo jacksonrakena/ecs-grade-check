@@ -1,10 +1,12 @@
 # GetGrade
- Get grades from ECS Assessment Marks
+## Get grades from ECS Assessment Marks
 
-<b>Sends an email on new result</b>
+
 <p float="left">
   <img src="readMeImages/received_email.PNG"  width="225" height="487.2">
 </p>
+
+<b>Sends an email on new result</b>
 
 GetGrade checks the ECS Assessment marks every 15-30 minutes (random to stop accidentally synchronizing and overloading the server if there are many users) to check if there is a new result. If there is, it uses your gmail account and sends you an email!
 
