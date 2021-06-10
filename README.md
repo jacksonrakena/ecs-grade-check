@@ -9,9 +9,11 @@
 GetGrade checks the ECS Assessment marks every 15-30 minutes (random to stop accidentally synchronizing and overloading the server if there are many users) to check if there is a new result. If there is, it uses your gmail account and sends you an email!
 
 <b>Automatic login</b>
+
 Automatically logs into the ECS Assessment Marks page by encrypting and storing your username and password.
 
 <b>Active Hours</b>
+
 Only check the site if within active hours. Set the active hours by editing "settings.ini" (generated after first run) and setting active_hours like so:
 
 ```
