@@ -4,10 +4,10 @@ import mechanicalsoup
 from bs4 import BeautifulSoup
 from tinydb import TinyDB, Query
 import time
-import datetime
+from datetime import datetime, timedelta
 import gmail
 import log
-import userpass
+import config
 
 
 class Result:
@@ -17,11 +17,20 @@ class Result:
         self.mark = mark
 
     def email_format_space(self, minlen) -> str:
+        """
+        Format with spaces, padding between : and mark to reach minlen
+        :param minlen: the minimum length
+        :return:
+        """
         diff = minlen - len(self.email_format())
         spaces = " " * diff
         return str(self.assig) + ": " + spaces + str(self.mark)
 
     def email_format(self) -> str:
+        """
+        Format for email
+        :return:
+        """
         return str(self.assig) + ": " + str(self.mark)
 
     def __str__(self):
@@ -31,7 +40,12 @@ class Result:
         return str(self)
 
 
-def format_results(results) -> str:
+def format_results(results: dict[str, str]) -> str:
+    """
+    Format a list of results
+    :param results:
+    :return:
+    """
     str_list = []
     first = True
     for subject in results.keys():
@@ -57,7 +71,7 @@ def format_results(results) -> str:
     return "".join(str_list)
 
 
-def email(new_results):
+def email(new_results: dict[str, str]):
     """
     Emails the new results
     :param new_results: the new results
@@ -66,18 +80,23 @@ def email(new_results):
     gmail.send_email(subject, format_results(new_results))
 
 
-def main():
+def query(db: TinyDB, epoch: int):
+    """
+    Query and send email
+    :param db: the database
+    :param epoch: the number of successful tries since the program was started
+    """
     browser = mechanicalsoup.StatefulBrowser()
     browser.open("https://apps.ecs.vuw.ac.nz/cgi-bin/studentmarks")
     browser.select_form("form[action=\"/login-ticket\"]")
 
-    browser["username"] = userpass.get_username()
-    browser["password"] = userpass.get_password()
+    browser["username"] = config.get_username()
+    browser["password"] = config.get_password()
     browser.submit_selected()
 
     # Full list of results
     results = []
-    # Map of new results <str course, Result result>
+    # Dict of new results <str course, Result result>
     new_results = {}
 
     page = str(browser.page)
@@ -112,7 +131,7 @@ def main():
                 new_results[result.subject] = []
             new_results.get(result.subject).append(result)
 
-    time_str = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if epoch > 0:
         if len(new_results) > 0:
             email(new_results)
@@ -131,7 +150,30 @@ def main():
     # pprint.pprint(subject_map)
 
 
-if __name__ == "__main__":
+def wait_on_exception():
+    """
+    Wait a few minutes when there is an exception
+    :return:
+    """
+    sleep_seconds = 60 + (random() * (180 - 60))
+    log.print_log("Waiting for " + str(int(sleep_seconds)) + " seconds to retry, until")
+    time.sleep(sleep_seconds)
+
+
+def log_sleep(minutes):
+    """
+    Log the sleep
+    :param minutes:
+    :return:
+    """
+    now = datetime.now()
+    delta = timedelta(minutes=minutes)
+    time_str = (now + delta).strftime("%Y-%m-%d %H:%M:%S")
+
+    log.print_log("Sleeping for: " + "{:.2f}".format(minutes) + " minutes, until " + time_str)
+
+
+def main():
     db = TinyDB("db.json")
     # Drop tables
     db.drop_tables()
@@ -145,9 +187,26 @@ if __name__ == "__main__":
     seed()
     epoch = 0
     while True:
-        main()
-        epoch += 1
-        # Sleep
-        sleep_minutes = 15 + (random() * (30 - 15))
-        log.print_log("Sleeping for: " + str(sleep_minutes) + " minutes")
-        time.sleep(sleep_minutes * 60)
+        if config.within_active_hours():
+            try:
+                query(db, epoch)
+            except ConnectionError:
+                log.print_log("ConnectionError Handled")
+                wait_on_exception()
+            except:
+                log.print_log("Other Exception Handled")
+                wait_on_exception()
+            else:
+                epoch += 1
+                # Sleep
+                sleep_minutes = 15 + (random() * (30 - 15))
+                log_sleep(sleep_minutes)
+                time.sleep(sleep_minutes * 60)
+        else:
+            sleep_seconds = config.seconds_till_active_hours_begin()
+            log_sleep(sleep_seconds / 60.0)
+            time.sleep(sleep_seconds)
+
+
+if __name__ == "__main__":
+    main()
