@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from os.path import isfile
+from typing import Tuple
+
 from cryptography.fernet import Fernet
 import configparser
 
@@ -85,9 +87,9 @@ def get_email_address() -> str:
     return _get_encrypted_data(EMAIL)
 
 
-def _get_active_hours() -> tuple[int, int]:
+def _get_active_hours() -> Tuple[int, int]:
     """
-    :return: the active hours as a tuple[start: int, end: int]
+    :return: the active hours as a Tuple[start: int, end: int]
     """
     string = _get_data(ACTIVE_HOURS)
     splits = string.split("-")

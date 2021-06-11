@@ -1,5 +1,7 @@
 from random import seed
 from random import random
+from typing import Dict, List
+
 import mechanicalsoup
 from bs4 import BeautifulSoup
 from tinydb import TinyDB, Query
@@ -40,7 +42,7 @@ class Result:
         return str(self)
 
 
-def format_results(results: dict[str, list[str]]) -> str:
+def format_results(results: Dict[str, List[str]]) -> str:
     """
     Format a list of results
     :param results:
@@ -71,7 +73,7 @@ def format_results(results: dict[str, list[str]]) -> str:
     return "".join(str_list)
 
 
-def email(new_results: dict[str, list[str]]):
+def email(new_results: Dict[str, List[str]]):
     """
     Emails the new results
     :param new_results: the new results
@@ -185,7 +187,7 @@ def main():
     gmail.init()
 
     seed()
-    epoch = 1
+    epoch = 0
     while True:
         if config.within_active_hours():
             try:
