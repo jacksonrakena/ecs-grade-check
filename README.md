@@ -1,4 +1,4 @@
-# GetGrade
+# GetGradeECS
 ## Get grades from ECS Assessment Marks
 
 
