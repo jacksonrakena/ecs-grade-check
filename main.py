@@ -13,7 +13,7 @@ import config
 
 
 class Result:
-    def __init__(self, subject: str , assig: str, mark: float):
+    def __init__(self, subject: str, assig: str, mark: float):
         self.subject = subject
         self.assig = assig
         self.mark = mark
