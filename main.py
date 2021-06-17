@@ -12,7 +12,7 @@ import log
 import config
 
 
-class Result:
+class ECSResult:
     def __init__(self, subject: str, assig: str, mark: float):
         self.subject = subject
         self.assig = assig
@@ -42,7 +42,7 @@ class Result:
         return str(self)
 
 
-def format_results(results: Dict[str, List[str]]) -> str:
+def format_results(results: Dict[str, List[ECSResult]]) -> str:
     """
     Format a list of results
     :param results:
@@ -73,7 +73,7 @@ def format_results(results: Dict[str, List[str]]) -> str:
     return "".join(str_list)
 
 
-def email(new_results: Dict[str, List[str]]):
+def email(new_results: Dict[str, List[ECSResult]]):
     """
     Emails the new results
     :param new_results: the new results
@@ -103,7 +103,7 @@ def query(db: TinyDB, epoch: int):
 
     page = str(browser.page)
     # page = testing.defaultPage
-    soup = BeautifulSoup(page, 'html.parser')
+    soup = BeautifulSoup(page, "html.parser")
     # print(list(soup.children))
     # subject_tags = soup.find_all("h3")
     # for subject_tag in subject_tags:
@@ -118,7 +118,7 @@ def query(db: TinyDB, epoch: int):
 
         s = assig_str + ": " + mark.text.strip()[len("Final Mark: "):]
         mark_float = float(mark.text.strip()[len("Final Mark: "):])
-        x = Result(subject_str, assig_str, mark_float)
+        x = ECSResult(subject_str, assig_str, mark_float)
         results.append(x)
 
     # Check for each result, whether the database already contains it
@@ -162,19 +162,6 @@ def wait_on_exception():
     time.sleep(sleep_seconds)
 
 
-def log_sleep(minutes):
-    """
-    Log the sleep
-    :param minutes:
-    :return:
-    """
-    now = datetime.now()
-    delta = timedelta(minutes=minutes)
-    time_str = (now + delta).strftime("%Y-%m-%d %H:%M:%S")
-
-    log.print_log("Sleeping for: " + "{:.2f}".format(minutes) + " minutes, until " + time_str)
-
-
 def main():
     db = TinyDB("db.json")
     # Drop tables
@@ -202,11 +189,11 @@ def main():
                 epoch += 1
                 # Sleep
                 sleep_minutes = 15 + (random() * (30 - 15))
-                log_sleep(sleep_minutes)
+                log.log_sleep(sleep_minutes)
                 time.sleep(sleep_minutes * 60)
         else:
             sleep_seconds = config.seconds_till_active_hours_begin()
-            log_sleep(sleep_seconds / 60.0)
+            log.log_sleep(sleep_seconds / 60.0)
             time.sleep(sleep_seconds)
 
 
