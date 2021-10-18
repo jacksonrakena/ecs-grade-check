@@ -13,7 +13,7 @@ import config
 
 
 class ECSResult:
-    def __init__(self, subject: str, assig: str, mark: float):
+    def __init__(self, subject: str, assig: str, mark: str):
         self.subject = subject
         self.assig = assig
         self.mark = mark
@@ -117,8 +117,8 @@ def query(db: TinyDB, epoch: int):
         subject_str = mark.find_previous("h3").text.strip()
 
         s = assig_str + ": " + mark.text.strip()[len("Final Mark: "):]
-        mark_float = float(mark.text.strip()[len("Final Mark: "):])
-        x = ECSResult(subject_str, assig_str, mark_float)
+        mark = mark.text.strip()[len("Final Mark: "):]
+        x = ECSResult(subject_str, assig_str, mark)
         results.append(x)
 
     # Check for each result, whether the database already contains it
