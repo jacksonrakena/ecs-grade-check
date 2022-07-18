@@ -7,10 +7,9 @@ from bs4 import BeautifulSoup
 from tinydb import TinyDB, Query
 import time
 from datetime import datetime, timedelta
-import gmail
 import log
 import config
-
+import notify
 
 class ECSResult:
     def __init__(self, subject: str, assig: str, mark: str):
@@ -40,7 +39,6 @@ class ECSResult:
 
     def __repr__(self):
         return str(self)
-
 
 def format_results(results: Dict[str, List[ECSResult]]) -> str:
     """
@@ -73,14 +71,13 @@ def format_results(results: Dict[str, List[ECSResult]]) -> str:
     return "".join(str_list)
 
 
-def email(new_results: Dict[str, List[ECSResult]]):
+def notify_new_results(new_results: Dict[str, List[ECSResult]]):
     """
     Emails the new results
     :param new_results: the new results
     """
-    subject = "New ECS Results" if len(new_results) > 1 else "New ECS Result"
-    gmail.send_email(subject, format_results(new_results))
-
+    print(f"Notifying {len(new_results)} subjects with results")
+    notify.notify(new_results)
 
 def query(db: TinyDB, epoch: int):
     """
@@ -136,7 +133,7 @@ def query(db: TinyDB, epoch: int):
     time_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if epoch > 0:
         if len(new_results) > 0:
-            email(new_results)
+            notify_new_results(new_results)
             log.print_log("Email sent at: " + time_str)
             log.log("=================NEW RESULTS=================")
             log.log(format_results(new_results))
@@ -169,10 +166,6 @@ def main():
 
     # Clear the log
     log.clear()
-
-    # Initialize gmail
-    gmail.init()
-
     seed()
     epoch = 0
     while True:
@@ -199,3 +192,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

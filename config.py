@@ -11,6 +11,7 @@ EMAIL = "email"
 USERNAME = "username"
 PASSWORD = "password"
 ACTIVE_HOURS = "active_hours"
+DISCORD_WEBHOOK_URL = "discord_webhook_url"
 
 CONFIG_FILE = "settings.ini"
 SETTINGS_HEADER = "SETTINGS"
@@ -77,6 +78,9 @@ def get_username() -> str:
     _init()
     return _get_encrypted_data(USERNAME)
 
+def get_webhook_url() -> str:
+    _init()
+    return _get_encrypted_data(DISCORD_WEBHOOK_URL)
 
 def get_email_address() -> str:
     """
@@ -143,9 +147,9 @@ def _init():
         config = configparser.ConfigParser()
         fernet = Fernet(_load_key())
         config[SETTINGS_HEADER] = {
-            EMAIL: fernet.encrypt(input("Email address to send to:").encode()).decode(),
             USERNAME: fernet.encrypt(input("Username:").encode()).decode(),
             PASSWORD: fernet.encrypt(input("Password:").encode()).decode(),
+            DISCORD_WEBHOOK_URL: fernet.encrypt(input("Discord webhook URL:").encode()).decode(),
             ACTIVE_HOURS: "",
         }
         with open(CONFIG_FILE, "w") as configfile:
